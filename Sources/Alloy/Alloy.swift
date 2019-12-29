@@ -112,7 +112,7 @@ let vstackResolver: ViewResolver = { type, props, children in
 
 // MARK:- Body creation
 
-extension Alloy {
+public extension Alloy {
     
     func body() throws -> some View {
         try viewResolvers.first!("VStack", nil, nil)
