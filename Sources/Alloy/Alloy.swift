@@ -3,17 +3,16 @@ import SwiftUI
 
 // MARK:- Public typealias
 
-public typealias Props = [String: Any]
-
 public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
 
 // MARK:- Alloy JSExport
 
 @objc protocol AlloyExports: JSExport {
     
-    typealias Identifier = String
-    typealias CreateElement = @convention(block) (String, Props?, [Identifier]?) -> Identifier
+    /// TODO:
+    typealias CreateElement = @convention(block) (String, [String: Any]?, [String]?) -> String
     
+    /// TODO:
     var createElement: CreateElement { get }
     
 }
@@ -27,7 +26,7 @@ public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
         let identifier = UUID().uuidString
         let type: String
         let props: Props?
-        let children: [Identifier]?
+        let children: [String]?
         
         init(type: String, props: Props?, children: [Identifier]?) {
             self.type = type
@@ -38,9 +37,10 @@ public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
     }
     
     public typealias Logger = @convention(block) (String) -> Void
+    typealias Identifier = String
     
     lazy var createElement: CreateElement = { [weak self] type, props, children in
-        let element = Element(type: type, props: props, children: children)
+        let element = Element(type: type, props: Props(props), children: children)
         self?.elements[element.identifier] = element
         return element.identifier
     }
@@ -96,13 +96,22 @@ public let defaultViewResolver: ViewResolver = { type, props, children in
 }
 
 let textResolver: ViewResolver = { type, props, children in
-    let verbatim: String = props?["verbatim"] as? String ?? ""
+    let verbatim: String = props?.verbatim?.stringValue ?? ""
     return AnyView(Text(verbatim: verbatim))
 }
 
 let vstackResolver: ViewResolver = { type, props, children in
-    let alignment: HorizontalAlignment = props?["alignment"] as? HorizontalAlignment ?? .center
-    let spacing: CGFloat? = props?["spacing"] as? CGFloat
+    let alignment: HorizontalAlignment
+    switch props?.alignment?.stringValue {
+    case "leading":
+        alignment = .leading
+    case "trailing":
+        alignment = .trailing
+    default:
+        alignment = .center
+    }
+    let spacing: CGFloat = CGFloat(props?.spacing?.doubleValue ?? .zero)
+    
     return AnyView(VStack(alignment: alignment, spacing: spacing) {
         Text("Hello")
         Text("Hello")
