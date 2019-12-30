@@ -5,13 +5,21 @@ import SwiftUI
 
 public typealias ViewResolver = (String, Props?, [AnyView]) throws -> AnyView?
 
-// MARK:- Alloy JSExport
+// MARK:- Alloy JSExports
 
 @objc protocol AlloyExports: JSExport {
     
-    typealias CreateElement = @convention(block) (String, [String: Any]?, [String]?) -> String
+    typealias CreateElement = @convention(block) (String, [String : Any]?, [ElementExports]?) -> ElementExports
     
     var createElement: CreateElement { get }
+    
+}
+
+@objc protocol ElementExports: JSExport {
+    
+    var children: [ElementExports]? { get set }
+    var props: [String : Any]? { get set }
+    var type: String { get set }
     
 }
 
@@ -19,36 +27,13 @@ public typealias ViewResolver = (String, Props?, [AnyView]) throws -> AnyView?
 
 @objc public class Alloy: NSObject, AlloyExports {
     
-    class Element: Identifiable {
-        
-        let id = UUID().uuidString
-        let type: String
-        let props: Props?
-        let children: [String]
-        
-        init(type: String, props: Props?, children: [Identifier]) {
-            self.type = type
-            self.props = props
-            self.children = children
-        }
-        
+    let createElement: CreateElement = { type, props, children in
+        return Element(type: type,
+                       props: props,
+                       children: children)
     }
-    
-    public typealias Logger = @convention(block) (String) -> Void
-    typealias Identifier = String
-    
-    lazy var createElement: CreateElement = { [weak self] type, props, children in
-        let element = Element(type: type, props: Props(props), children: children ?? [])
-        self?.elements[element.id] = element
-        return element.id
-    }
-    let context: JSContext
-    var elements = [Identifier: Element]()
-    lazy var rootElementIdentifier: Identifier! = {
-        let build = context.objectForKeyedSubscript("body")
-        return build?.call(withArguments: nil)?.toString()
-    }()
     let viewResolvers: [ViewResolver]
+    public let context: JSContext
     
     public init?(script: String,
                  exceptionHandler: @escaping (JSContext?, JSValue?) -> Void = Alloy.defaultExceptionHandler,
@@ -63,6 +48,25 @@ public typealias ViewResolver = (String, Props?, [AnyView]) throws -> AnyView?
         context.setObject(self, forKeyedSubscript: "Alloy" as NSString)
         context.objectForKeyedSubscript("Alloy" as NSString)?.setValue(logger, forProperty: "log")
         context.evaluateScript(script)
+    }
+    
+    public typealias Logger = @convention(block) (String) -> Void
+    typealias Identifier = String
+    
+}
+
+class Element: NSObject, ElementExports {
+    
+    dynamic var children: [ElementExports]?
+    dynamic var props: [String : Any]?
+    dynamic var type: String
+    
+    required init(type: String,
+                  props: [String : Any]?,
+                  children: [ElementExports]?) {
+        self.type = type
+        self.props = props
+        self.children = children
     }
     
 }
@@ -121,15 +125,20 @@ let vstackResolver: ViewResolver = { type, props, children in
 
 public extension Alloy {
     
-    func inflateElements(by id: String) -> AnyView {
-        let element = elements[id]!
-        return try! defaultViewResolver(element.type, element.props, element.children.map({
-            self.inflateElements(by: $0)
-        }))!
+    private func inflate(element: ElementExports) -> AnyView {
+        return try! defaultViewResolver(element.type,
+                                        Props(element.props),
+                                        element.children?.compactMap({
+                                            inflate(element: $0)
+                                        }) ?? [])!
     }
     
     func body() throws -> some View {
-        inflateElements(by: rootElementIdentifier)
+        let build = context.objectForKeyedSubscript("body")
+        let element = build?.call(withArguments: nil)?.toObject() as! ElementExports
+        return inflate(element: element)
     }
     
 }
+
+public struct AlloyView {}
