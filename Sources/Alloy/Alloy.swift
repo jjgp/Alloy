@@ -108,7 +108,7 @@ let vstackResolver: ViewResolver = { type, props, children in
     default:
         alignment = .center
     }
-    let spacing: CGFloat = CGFloat(props?.spacing?.intValue ?? .zero)
+    let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
     
     return AnyView(VStack(alignment: alignment, spacing: spacing) {
         ForEach(0..<children.count) {

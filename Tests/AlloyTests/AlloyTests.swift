@@ -6,7 +6,7 @@ function body() {
   Alloy.log('foobar');
   return Alloy.createElement(
     'VStack',
-    { alignment: 'center', spacing: 20.0 },
+    { alignment: 'center', spacing: 25.3 },
     [
       Alloy.createElement('Text', { verbatim: 'Foobar' }, null),
       Alloy.createElement('Text', { verbatim: 'Barbaz' }, null),
