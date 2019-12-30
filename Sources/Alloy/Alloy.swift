@@ -3,16 +3,14 @@ import SwiftUI
 
 // MARK:- Public typealias
 
-public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
+public typealias ViewResolver = (String, Props?, [AnyView]) throws -> AnyView?
 
 // MARK:- Alloy JSExport
 
 @objc protocol AlloyExports: JSExport {
     
-    /// TODO:
     typealias CreateElement = @convention(block) (String, [String: Any]?, [String]?) -> String
     
-    /// TODO:
     var createElement: CreateElement { get }
     
 }
@@ -21,14 +19,14 @@ public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
 
 @objc public class Alloy: NSObject, AlloyExports {
     
-    class Element {
+    class Element: Identifiable {
         
-        let identifier = UUID().uuidString
+        let id = UUID().uuidString
         let type: String
         let props: Props?
-        let children: [String]?
+        let children: [String]
         
-        init(type: String, props: Props?, children: [Identifier]?) {
+        init(type: String, props: Props?, children: [Identifier]) {
             self.type = type
             self.props = props
             self.children = children
@@ -40,9 +38,9 @@ public typealias ViewResolver = (String, Props?, [AnyView]?) throws -> AnyView?
     typealias Identifier = String
     
     lazy var createElement: CreateElement = { [weak self] type, props, children in
-        let element = Element(type: type, props: Props(props), children: children)
-        self?.elements[element.identifier] = element
-        return element.identifier
+        let element = Element(type: type, props: Props(props), children: children ?? [])
+        self?.elements[element.id] = element
+        return element.id
     }
     let context: JSContext
     var elements = [Identifier: Element]()
@@ -110,12 +108,12 @@ let vstackResolver: ViewResolver = { type, props, children in
     default:
         alignment = .center
     }
-    let spacing: CGFloat = CGFloat(props?.spacing?.doubleValue ?? .zero)
+    let spacing: CGFloat = CGFloat(props?.spacing?.intValue ?? .zero)
     
     return AnyView(VStack(alignment: alignment, spacing: spacing) {
-        Text("Hello")
-        Text("Hello")
-        Text("Hello")
+        ForEach(0..<children.count) {
+            children[$0]
+        }
     })
 }
 
@@ -123,8 +121,15 @@ let vstackResolver: ViewResolver = { type, props, children in
 
 public extension Alloy {
     
+    func inflateElements(by id: String) -> AnyView {
+        let element = elements[id]!
+        return try! defaultViewResolver(element.type, element.props, element.children.map({
+            self.inflateElements(by: $0)
+        }))!
+    }
+    
     func body() throws -> some View {
-        try viewResolvers.first!("VStack", nil, nil)
+        inflateElements(by: rootElementIdentifier)
     }
     
 }

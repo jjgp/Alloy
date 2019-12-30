@@ -3,12 +3,17 @@ import XCTest
 
 let alloyScript = #"""
 function body() {
-    Alloy.log('foobar');
-    return Alloy.createElement(
-        'View',
-        {foobar: 'bazquux'},
-        [Alloy.createElement('Text', {quux: 'foobar'}, null)]
-    );
+  Alloy.log('foobar');
+  return Alloy.createElement(
+    'VStack',
+    { alignment: 'center', spacing: 20.0 },
+    [
+      Alloy.createElement('Text', { verbatim: 'Foobar' }, null),
+      Alloy.createElement('Text', { verbatim: 'Barbaz' }, null),
+      Alloy.createElement('Text', { verbatim: 'Quzquix' }, null),
+      Alloy.createElement('Text', { verbatim: 'Barfoo' }, null),
+    ]
+  );
 }
 """#
 
