@@ -1,25 +1,17 @@
-import JavaScriptCore
+import SwiftUI
 
-@objc protocol ElementExports: JSExport {
+public struct Element: View {
     
-    var children: [ElementExports]? { get set }
-    var props: [String : Any]? { get set }
-    var type: String { get set }
+    public var body: some View {
+        source.body(props: props)
+    }
     
-}
-
-class Element: NSObject, ElementExports {
+    let props: Props?
+    let source: AnyElementSource
     
-    dynamic var children: [ElementExports]?
-    dynamic var props: [String : Any]?
-    dynamic var type: String
-    
-    required init(type: String,
-                  props: [String : Any]?,
-                  children: [ElementExports]?) {
-        self.type = type
+    public init(source: AnyElementSource, props: Props?) {
         self.props = props
-        self.children = children
+        self.source = source
     }
     
 }

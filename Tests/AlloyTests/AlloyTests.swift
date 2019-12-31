@@ -20,8 +20,8 @@ function body() {
 final class AlloyTests: XCTestCase {
     
     func testBodyIsNotNil() {
-        let body = try? Alloy(script: alloyScript)?.body()
-        XCTAssertNotNil(body)
+        let element = Alloy(script: alloyScript).body as! Element
+        XCTAssertNotNil(element.body)
     }
 
     static var allTests = [

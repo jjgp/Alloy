@@ -14,6 +14,7 @@ public enum Props {
     case date(Date)
     case array([Any])
     case dictionary([String: Any?])
+    case children(Children)
     
     init?(_ value: Any?) {
         switch value {
@@ -35,6 +36,8 @@ public enum Props {
             self = .array(value as! [Any])
         case is [String: Any]:
             self = .dictionary(value as! [String: Any?])
+        case is Children:
+            self = .children(value as! Children)
         default:
             return nil
         }
@@ -139,7 +142,14 @@ public extension Props {
         return nil
     }
     
-    var arrayOfJSON: [Props]? {
+    var childrenValue: Children? {
+        if case .children(let children) = self {
+            return children
+        }
+        return nil
+    }
+    
+    var arrayOfProps: [Props]? {
         return arrayValue?.compactMap { Props($0) }
     }
     
@@ -154,7 +164,7 @@ public extension Props {
         return nil
     }
     
-    var dictionaryOfJSON: [String: Props]? {
+    var dictionaryOfProps: [String: Props]? {
         if let keysWithValues = dictionaryValue?.compactMap({ ($0, Props($1)) as? (String, Props) }) {
             return Dictionary(uniqueKeysWithValues: keysWithValues)
         }
