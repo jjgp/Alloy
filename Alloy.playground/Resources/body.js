@@ -3,10 +3,19 @@ function body() {
   Alloy.log(element);
   return Alloy.createElement(
     'VStack',
-    { alignment: 'center', spacing: 10.0 },
+    { alignment: 'leading', spacing: 10.0 },
     [
       element,
       Alloy.createElement('Text', { verbatim: 'Detroit' }, null),
+      Alloy.createElement(
+        'VStack',
+        { alignment: 'trailing' },
+        [
+          Alloy.createElement('Text', { verbatim: 'DIA' }, null),
+          Alloy.createElement('Text', { verbatim: 'RenCen' }, null),
+          Alloy.createElement('Text', { verbatim: 'StockX' }, null),
+        ]
+      ),
       Alloy.createElement('Text', { verbatim: 'Lansing' }, null),
       Alloy.createElement('Text', { verbatim: 'Royal Oak' }, null),
     ]
