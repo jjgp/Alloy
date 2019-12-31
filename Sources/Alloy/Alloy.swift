@@ -1,10 +1,6 @@
 import JavaScriptCore
 import SwiftUI
 
-// MARK:- Public typealias
-
-public typealias ViewResolver = (String, Props?, [AnyView]) throws -> AnyView?
-
 // MARK:- Alloy JSExports
 
 @objc protocol AlloyExports : JSExport {
@@ -61,6 +57,7 @@ public extension Alloy {
     }
     
     static let defaultSolutes: [AlloySolute] = [
+        .hstack,
         .text,
         .vstack
     ]
@@ -91,7 +88,7 @@ public extension Alloy {
 public struct AlloyView: View {
     
     public var body: some View {
-        solute.view(props, children)
+        solute.body(props, children)
     }
     
     let children: [AlloyView]?
@@ -108,21 +105,21 @@ public struct AlloyView: View {
 
 public struct AlloySolute {
     
-    let view: (Props?, [AlloyView]?) -> AnyView
+    let body: (Props?, [AlloyView]?) -> AnyView
     let type: String
     
-    public init<V>(type: String, _ view: @escaping (Props?) -> V) where V: View {
-        self.view = { props, _ in
+    public init<V>(type: String, _ body: @escaping (Props?) -> V) where V: View {
+        self.body = { props, _ in
             // TODO: assertion on _ (children)
-            AnyView(view(props))
+            AnyView(body(props))
         }
         self.type = type
         
     }
     
-    public init<V>(type: String, _ view: @escaping (Props?, [AlloyView]?) -> V) where V: View {
-        self.view = { props, children in
-            AnyView(view(props, children))
+    public init<V>(type: String, _ body: @escaping (Props?, [AlloyView]?) -> V) where V: View {
+        self.body = { props, children in
+            AnyView(body(props, children))
         }
         self.type = type
     }
@@ -131,17 +128,45 @@ public struct AlloySolute {
 
 extension AlloySolute {
     
+    static var hstack: AlloySolute {
+        func solute(props: Props?, children: [AlloyView]?) -> some View {
+            let children = children ?? []
+            let alignment: VerticalAlignment
+            switch props?.alignment?.stringValue {
+            case "top":
+                alignment = .top
+            case "bottom":
+                alignment = .bottom
+            case "firstTextBaseline":
+                alignment = .firstTextBaseline
+            case "lastTextBaseline":
+                alignment = .lastTextBaseline
+            default:
+                alignment = .center
+            }
+            let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+            
+            return HStack(alignment: alignment, spacing: spacing) {
+                ForEach(0..<children.count) {
+                    children[$0]
+                }
+            }
+        }
+        
+        return AlloySolute(type: "HStack", solute)
+    }
+    
     static var text: AlloySolute {
-        let solute: (Props?) -> AnyView = { props in
+        func solute(props: Props?, children: [AlloyView]?) -> some View {
             let verbatim: String = props?.verbatim?.stringValue ?? ""
-            return AnyView(Text(verbatim: verbatim))
+            return Text(verbatim: verbatim)
         }
         
         return AlloySolute(type: "Text", solute)
     }
     
     static var vstack: AlloySolute {
-        let solute: (Props?, [AlloyView]?) -> AnyView = { props, children in
+        func solute(props: Props?, children: [AlloyView]?) -> some View {
             let children = children ?? []
             let alignment: HorizontalAlignment
             switch props?.alignment?.stringValue {
@@ -154,11 +179,11 @@ extension AlloySolute {
             }
             let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
             
-            return AnyView(VStack(alignment: alignment, spacing: spacing) {
+            return VStack(alignment: alignment, spacing: spacing) {
                 ForEach(0..<children.count) {
                     children[$0]
                 }
-            })
+            }
         }
         
         return AlloySolute(type: "VStack", solute)

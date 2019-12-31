@@ -8,8 +8,8 @@ function body() {
       element,
       Alloy.createElement('Text', { verbatim: 'Detroit' }, null),
       Alloy.createElement(
-        'VStack',
-        { alignment: 'trailing' },
+        'HStack',
+        { alignment: 'trailing', spacing: 5.0 },
         [
           Alloy.createElement('Text', { verbatim: 'DIA' }, null),
           Alloy.createElement('Text', { verbatim: 'RenCen' }, null),
