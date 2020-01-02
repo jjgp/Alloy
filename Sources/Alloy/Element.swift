@@ -35,7 +35,14 @@ public struct Element: View {
     
     init<E: ElementSource>(source: E, props: Props?) {
         bodyErased = {
-            AnyView(source.body(props: $0))
+            // TODO: improve handling, possibly present error screen in Debug?
+            // Have meaningful logs with the default logger.
+            do {
+                return AnyView(try source.body(props: $0))
+            } catch {
+                print(error)
+                return AnyView(EmptyView())
+            }
         }
         self.props = props
     }

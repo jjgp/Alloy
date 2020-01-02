@@ -12,7 +12,6 @@ public struct ContextExtension {
 
 public extension ContextExtension {
     
-    
     static var alloyExceptionHandler: ContextExtension {
         ContextExtension {
             $0.exceptionHandler = { context, exception in
