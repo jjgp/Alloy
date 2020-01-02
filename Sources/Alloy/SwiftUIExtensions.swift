@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK:- HorizontalAlignment
+
 public extension HorizontalAlignment {
     
     static func represented(by stringValue: String) -> Self? {
@@ -16,6 +18,8 @@ public extension HorizontalAlignment {
     }
     
 }
+
+// MARK:- VerticalAlignment
 
 public extension VerticalAlignment {
     

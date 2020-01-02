@@ -5,17 +5,22 @@ import SwiftUI
     
     var createElement: CreateElement { get }
     
-    typealias CreateElement = @convention(block) (String, [String : Any]?, [ElementDescriptionExports]?) -> ElementDescriptionExports
+    typealias CreateElement = @convention(block) (String, [String : Any]?, [ElementExports]?) -> ElementExports
     
 }
 
-@objc public class Alloy : NSObject, AlloyExports {
+public class Alloy {
     
-    let createElement: CreateElement = { type, props, children in
-        return ElementDescription(type: type,
-                                  props: props,
-                                  children: children)
+    @objc private class Exports: NSObject, AlloyExports {
+        
+        let createElement: CreateElement = { type, props, children in
+            return Element.createExports(type: type,
+                                         props: props,
+                                         children: children)
+        }
+        
     }
+    
     public let context: JSContext
     let sourceRegistry: [String : AnyElementSource]
     
@@ -23,13 +28,11 @@ import SwiftUI
                 exceptionHandler: @escaping (JSContext?, JSValue?) -> Void = Alloy.defaultExceptionHandler,
                 logger: @escaping Logger = Alloy.defaultLogger,
                 sources: [AnyElementSourceConvertible] = Alloy.defaultSources) {
-        context = JSContext()
         sourceRegistry = Dictionary(uniqueKeysWithValues: sources.map { $0.asAnyElementSource}.map { ($0.type, $0) })
         
-        super.init()
-        
+        context = JSContext()
         context.exceptionHandler = Alloy.defaultExceptionHandler
-        context.setObject(self, forKeyedSubscript: "Alloy" as NSString)
+        context.setObject(Exports(), forKeyedSubscript: "Alloy" as NSString)
         context.objectForKeyedSubscript("Alloy" as NSString)?.setValue(logger, forProperty: "log")
         context.evaluateScript(script)
     }
@@ -64,7 +67,7 @@ public extension Alloy {
 
 public extension Alloy {
     
-    private func inflate(description: ElementDescriptionExports) -> Element {
+    private func inflate(description: ElementExports) -> Element {
         let source: AnyElementSource! = sourceRegistry[description.type]
         var props = description.props
         if props != nil, let children = description.children?.compactMap({
@@ -78,7 +81,7 @@ public extension Alloy {
     
     var body: some View {
         let body = context.objectForKeyedSubscript("body")
-        let description = body?.call(withArguments: nil)?.toObject() as! ElementDescriptionExports
+        let description = body?.call(withArguments: nil)?.toObject() as! ElementExports
         return inflate(description: description)
     }
     
