@@ -1,59 +1,66 @@
 import SwiftUI
 
-public protocol ElementSource: AnyElementSourceConvertible {
+public protocol ElementSource: ElementConvertible {
     
     associatedtype Body: View
     
     var type: String { get }
     
-    func body(props: Props?) -> Self.Body
+    func body(props: Props?) throws -> Self.Body
     
 }
 
-public struct AnyElementSource {
+public protocol ElementConvertible {
     
-    let bodyErased: (Props?) -> AnyView
-    func body(props: Props?) -> AnyView {
-        bodyErased(props)
-    }
-    let type: String
+    var type: String { get }
     
-    init<E: ElementSource>(_ source: E) {
-        bodyErased = {
-            AnyView(source.body(props: $0))
-        }
-        self.type = source.type
-    }
-    
-}
-
-public protocol AnyElementSourceConvertible {
-    
-    var asAnyElementSource: AnyElementSource { get }
+    func toElement(passing props: Props?) -> Element
     
 }
 
 public extension ElementSource {
     
-    var asAnyElementSource: AnyElementSource {
-        .init(self)
+    func toElement(passing props: Props?) -> Element {
+        return .init(source: self, props: props)
     }
     
 }
 
-public struct VStackSource: ElementSource {
+public struct ElementSourceError: Error {
     
-    public let type = "VStack"
-    
-    public func body(props: Props?) -> some View {
-        let alignment = props?.alignment?.stringValue
-            .flatMap { HorizontalAlignment.represented(by: $0) }
-            ?? .center
-        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+    public struct Reasons {
         
-        return VStack(alignment: alignment, spacing: spacing) {
-            props?.children?.childrenValue ?? .emptyChildren
+        public static var children: String {
+            "Children"
         }
+        public static var props: String {
+            "Props"
+        }
+        
+    }
+    
+    let message: String
+    let reason: String
+    
+    public init(reason: String, message: String) {
+        self.message = message
+        self.reason = reason
+    }
+    
+    // TODO: conform to string convertibles here
+    
+}
+
+public extension ElementSourceError {
+    
+    static func childrenError(_ message: String = "") -> Error {
+        return ElementSourceError(reason: Reasons.children,
+                                  message: message)
+    }
+    
+    static func propsError(_ message: String = "") -> Error {
+        return ElementSourceError(reason: Reasons.props,
+                                  message: message)
     }
     
 }
@@ -62,14 +69,18 @@ public struct HStackSource: ElementSource {
     
     public let type = "HStack"
     
-    public func body(props: Props?) -> some View {
+    public func body(props: Props?) throws -> some View {
+        guard let children = props?.children?.childrenValue else {
+            throw ElementSourceError.childrenError()
+        }
+        
         let alignment = props?.alignment?.stringValue
             .flatMap { VerticalAlignment.represented(by: $0) }
             ?? .center
         let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
         
         return HStack(alignment: alignment, spacing: spacing) {
-            props?.children?.childrenValue ?? .emptyChildren
+            children
         }
     }
     
@@ -79,9 +90,30 @@ public struct TextSource: ElementSource {
     
     public let type = "Text"
     
-    public func body(props: Props?) -> some View {
+    public func body(props: Props?) throws -> some View {
         let verbatim = props?.verbatim?.stringValue ?? ""
         return Text(verbatim: verbatim)
+    }
+    
+}
+
+public struct VStackSource: ElementSource {
+    
+    public let type = "VStack"
+    
+    public func body(props: Props?) throws -> some View {
+        guard let children = props?.children?.childrenValue else {
+            throw ElementSourceError.childrenError()
+        }
+        
+        let alignment = props?.alignment?.stringValue
+            .flatMap { HorizontalAlignment.represented(by: $0) }
+            ?? .center
+        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+        
+        return VStack(alignment: alignment, spacing: spacing) {
+            children
+        }
     }
     
 }
