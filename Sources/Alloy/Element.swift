@@ -35,12 +35,11 @@ public struct Element: View {
     
     init<E: ElementSource>(source: E, props: Props?) {
         bodyErased = {
-            // TODO: improve handling, possibly present error screen in Debug?
-            // Have meaningful logs with the default logger.
             do {
                 return AnyView(try source.body(props: $0))
             } catch {
-                print(error)
+                // TODO: improve handling, possibly present error screen in Debug?
+                // Have meaningful logs with the default logger.
                 return AnyView(EmptyView())
             }
         }

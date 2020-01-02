@@ -64,6 +64,12 @@ public extension Alloy {
 
 public extension Alloy {
     
+    var body: some View {
+        let body = context.objectForKeyedSubscript("body")
+        let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
+        return sourceElement(exports: exports)
+    }
+    
     private func sourceElement(exports: ElementExports) -> Element {
         let source: ElementConvertible! = sources[exports.type]
         var props = exports.props
@@ -73,12 +79,6 @@ public extension Alloy {
             props?["children"] = Children(children)
         }
         return source.toElement(passing: Props(props))
-    }
-    
-    var body: some View {
-        let body = context.objectForKeyedSubscript("body")
-        let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
-        return sourceElement(exports: exports)
     }
     
 }

@@ -22,6 +22,7 @@ public extension ContextExtension {
     
     static var alloyLogger: ContextExtension {
         ContextExtension {
+            // TODO: extract logger out into its own entity and reference it here
             let logger: @convention(block) (String) -> Void = {
                 ContextExtension.defaultLogger($0)
             }
