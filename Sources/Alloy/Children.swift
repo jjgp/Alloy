@@ -15,11 +15,3 @@ public struct Children: View {
     }
     
 }
-
-public extension Children {
-    
-    static var emptyChildren: Self {
-        return .init([])
-    }
-    
-}

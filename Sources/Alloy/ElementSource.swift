@@ -47,6 +47,8 @@ public struct ElementSourceError: Error {
         self.reason = reason
     }
     
+    // TODO: conform to string convertibles here
+    
 }
 
 public extension ElementSourceError {
