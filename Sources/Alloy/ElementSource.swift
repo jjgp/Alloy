@@ -26,23 +26,6 @@ public extension ElementSource {
     
 }
 
-public struct VStackSource: ElementSource {
-    
-    public let type = "VStack"
-    
-    public func body(props: Props?) -> some View {
-        let alignment = props?.alignment?.stringValue
-            .flatMap { HorizontalAlignment.represented(by: $0) }
-            ?? .center
-        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
-        
-        return VStack(alignment: alignment, spacing: spacing) {
-            props?.children?.childrenValue ?? .emptyChildren
-        }
-    }
-    
-}
-
 public struct HStackSource: ElementSource {
     
     public let type = "HStack"
@@ -67,6 +50,23 @@ public struct TextSource: ElementSource {
     public func body(props: Props?) -> some View {
         let verbatim = props?.verbatim?.stringValue ?? ""
         return Text(verbatim: verbatim)
+    }
+    
+}
+
+public struct VStackSource: ElementSource {
+    
+    public let type = "VStack"
+    
+    public func body(props: Props?) -> some View {
+        let alignment = props?.alignment?.stringValue
+            .flatMap { HorizontalAlignment.represented(by: $0) }
+            ?? .center
+        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+        
+        return VStack(alignment: alignment, spacing: spacing) {
+            props?.children?.childrenValue ?? .emptyChildren
+        }
     }
     
 }

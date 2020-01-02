@@ -21,45 +21,42 @@ public class Alloy {
         
     }
     
-    public let context: JSContext
     let sourceRegistry: [String : ElementConvertible]
+    let context: JSContext
+    static let contextObjectKey: NSString = "Alloy"
     
     public init(script: String,
-                exceptionHandler: @escaping (JSContext?, JSValue?) -> Void = Alloy.defaultExceptionHandler,
-                logger: @escaping Logger = Alloy.defaultLogger,
+                extensions: [ContextExtension] = Alloy.defaultExtensions,
                 sources: [ElementConvertible] = Alloy.defaultSources) {
         sourceRegistry = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
-        
         context = JSContext()
-        context.exceptionHandler = Alloy.defaultExceptionHandler
-        context.setObject(Exports(), forKeyedSubscript: "Alloy" as NSString)
-        context.objectForKeyedSubscript("Alloy" as NSString)?.setValue(logger, forProperty: "log")
+        context.setObject(Exports(), forKeyedSubscript: Alloy.contextObjectKey)
+        extensions.forEach {
+            $0.extension(context)
+        }
         context.evaluateScript(script)
     }
     
-    public typealias Logger = @convention(block) (String) -> Void
-    typealias Identifier = String
-    
 }
 
-// MARK:- Default implementations
+// MARK:- Default initializer arguments
 
 public extension Alloy {
     
-    static let defaultExceptionHandler: (JSContext?, JSValue?) -> Void = { context, exception in
-        Alloy.defaultLogger(exception!.toString()!)
+    static var defaultExtensions: [ContextExtension] {
+        [
+            ContextExtension.alloyExceptionHandler,
+            ContextExtension.alloyLogger
+        ]
     }
     
-    static let defaultLogger: Logger = {
-        // TODO: use os.log?
-        print($0)
+    static var defaultSources: [ElementConvertible] {
+        [
+            HStackSource(),
+            TextSource(),
+            VStackSource()
+        ]
     }
-    
-    static let defaultSources: [ElementConvertible] = [
-        HStackSource(),
-        TextSource(),
-        VStackSource()
-    ]
     
 }
 
