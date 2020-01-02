@@ -28,15 +28,16 @@ public struct Element: View {
     }
     
     public var body: some View {
-        source.body(props: props)
+        bodyErased(props)
     }
-    
+    let bodyErased: (Props?) -> AnyView
     let props: Props?
-    let source: AnyElementSource
     
-    public init(source: AnyElementSource, props: Props?) {
+    init<E: ElementSource>(source: E, props: Props?) {
+        bodyErased = {
+            AnyView(source.body(props: $0))
+        }
         self.props = props
-        self.source = source
     }
     
 }

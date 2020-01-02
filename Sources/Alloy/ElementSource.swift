@@ -1,6 +1,6 @@
 import SwiftUI
 
-public protocol ElementSource: AnyElementSourceConvertible {
+public protocol ElementSource: ElementConvertible {
     
     associatedtype Body: View
     
@@ -10,33 +10,18 @@ public protocol ElementSource: AnyElementSourceConvertible {
     
 }
 
-public struct AnyElementSource {
+public protocol ElementConvertible {
     
-    let bodyErased: (Props?) -> AnyView
-    func body(props: Props?) -> AnyView {
-        bodyErased(props)
-    }
-    let type: String
+    var type: String { get }
     
-    init<E: ElementSource>(_ source: E) {
-        bodyErased = {
-            AnyView(source.body(props: $0))
-        }
-        self.type = source.type
-    }
-    
-}
-
-public protocol AnyElementSourceConvertible {
-    
-    var asAnyElementSource: AnyElementSource { get }
+    func toElement(passing props: Props?) -> Element
     
 }
 
 public extension ElementSource {
     
-    var asAnyElementSource: AnyElementSource {
-        .init(self)
+    func toElement(passing props: Props?) -> Element {
+        return .init(source: self, props: props)
     }
     
 }

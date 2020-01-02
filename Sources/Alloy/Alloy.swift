@@ -22,13 +22,13 @@ public class Alloy {
     }
     
     public let context: JSContext
-    let sourceRegistry: [String : AnyElementSource]
+    let sourceRegistry: [String : ElementConvertible]
     
     public init(script: String,
                 exceptionHandler: @escaping (JSContext?, JSValue?) -> Void = Alloy.defaultExceptionHandler,
                 logger: @escaping Logger = Alloy.defaultLogger,
-                sources: [AnyElementSourceConvertible] = Alloy.defaultSources) {
-        sourceRegistry = Dictionary(uniqueKeysWithValues: sources.map { $0.asAnyElementSource}.map { ($0.type, $0) })
+                sources: [ElementConvertible] = Alloy.defaultSources) {
+        sourceRegistry = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
         
         context = JSContext()
         context.exceptionHandler = Alloy.defaultExceptionHandler
@@ -55,7 +55,7 @@ public extension Alloy {
         print($0)
     }
     
-    static let defaultSources: [AnyElementSourceConvertible] = [
+    static let defaultSources: [ElementConvertible] = [
         HStackSource(),
         TextSource(),
         VStackSource()
@@ -67,22 +67,21 @@ public extension Alloy {
 
 public extension Alloy {
     
-    private func inflate(description: ElementExports) -> Element {
-        let source: AnyElementSource! = sourceRegistry[description.type]
-        var props = description.props
-        if props != nil, let children = description.children?.compactMap({
-            inflate(description: $0)
+    private func inflate(exports: ElementExports) -> Element {
+        let source: ElementConvertible! = sourceRegistry[exports.type]
+        var props = exports.props
+        if props != nil, let children = exports.children?.compactMap({
+            inflate(exports: $0)
         }) {
             props?["children"] = Children(children)
         }
-        return Element(source: source,
-                       props: Props(props))
+        return source.toElement(passing: Props(props))
     }
     
     var body: some View {
         let body = context.objectForKeyedSubscript("body")
-        let description = body?.call(withArguments: nil)?.toObject() as! ElementExports
-        return inflate(description: description)
+        let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
+        return inflate(exports: exports)
     }
     
 }
