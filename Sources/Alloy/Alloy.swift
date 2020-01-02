@@ -21,14 +21,14 @@ public class Alloy {
         
     }
     
-    let sourceRegistry: [String : ElementConvertible]
+    let sources: [String: ElementConvertible]
     let context: JSContext
     static let contextObjectKey: NSString = "Alloy"
     
     public init(script: String,
                 extensions: [ContextExtension] = Alloy.defaultExtensions,
                 sources: [ElementConvertible] = Alloy.defaultSources) {
-        sourceRegistry = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
+        self.sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
         context = JSContext()
         context.setObject(Exports(), forKeyedSubscript: Alloy.contextObjectKey)
         extensions.forEach {
@@ -64,11 +64,11 @@ public extension Alloy {
 
 public extension Alloy {
     
-    private func inflate(exports: ElementExports) -> Element {
-        let source: ElementConvertible! = sourceRegistry[exports.type]
+    private func sourceElement(exports: ElementExports) -> Element {
+        let source: ElementConvertible! = sources[exports.type]
         var props = exports.props
         if props != nil, let children = exports.children?.compactMap({
-            inflate(exports: $0)
+            sourceElement(exports: $0)
         }) {
             props?["children"] = Children(children)
         }
@@ -78,7 +78,7 @@ public extension Alloy {
     var body: some View {
         let body = context.objectForKeyedSubscript("body")
         let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
-        return inflate(exports: exports)
+        return sourceElement(exports: exports)
     }
     
 }
