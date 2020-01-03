@@ -6,7 +6,7 @@ public protocol ElementSource: ElementConvertible {
     
     var type: String { get }
     
-    func body(props: Props?) throws -> Self.Body
+    func body(props: Props) throws -> Self.Body
     
 }
 
@@ -14,13 +14,13 @@ public protocol ElementConvertible {
     
     var type: String { get }
     
-    func toElement(passing props: Props?) -> Element
+    func toElement(passing props: Props) -> Element
     
 }
 
 public extension ElementSource {
     
-    func toElement(passing props: Props?) -> Element {
+    func toElement(passing props: Props) -> Element {
         return .init(source: self, props: props)
     }
     
@@ -69,15 +69,15 @@ public struct HStackSource: ElementSource {
     
     public let type = "HStack"
     
-    public func body(props: Props?) throws -> some View {
-        guard let children = props?.children?.childrenValue else {
+    public func body(props: Props) throws -> some View {
+        guard let children = props.children.underlyingValue?.toObject() as? Children else {
             throw ElementSourceError.childrenError()
         }
         
-        let alignment = props?.alignment?.stringValue
+        let alignment = props.alignment.underlyingValue?.toString()
             .flatMap { VerticalAlignment.represented(by: $0) }
             ?? .center
-        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+        let spacing = CGFloat(truncating: props.spacing.underlyingValue?.toNumber() ?? 0)
         
         return HStack(alignment: alignment, spacing: spacing) {
             children
@@ -90,8 +90,8 @@ public struct TextSource: ElementSource {
     
     public let type = "Text"
     
-    public func body(props: Props?) throws -> some View {
-        let verbatim = props?.verbatim?.stringValue ?? ""
+    public func body(props: Props) throws -> some View {
+        let verbatim = props.verbatim.underlyingValue?.toString() ?? ""
         return Text(verbatim: verbatim)
     }
     
@@ -101,15 +101,15 @@ public struct VStackSource: ElementSource {
     
     public let type = "VStack"
     
-    public func body(props: Props?) throws -> some View {
-        guard let children = props?.children?.childrenValue else {
+    public func body(props: Props) throws -> some View {
+        guard let children = props.children.underlyingValue?.toObject() as? Children else {
             throw ElementSourceError.childrenError()
         }
         
-        let alignment = props?.alignment?.stringValue
+        let alignment = props.alignment.underlyingValue?.toString()
             .flatMap { HorizontalAlignment.represented(by: $0) }
             ?? .center
-        let spacing = CGFloat(truncating: props?.spacing?.numberValue ?? 0)
+        let spacing = CGFloat(truncating: props.spacing.underlyingValue?.toNumber() ?? 0)
         
         return VStack(alignment: alignment, spacing: spacing) {
             children

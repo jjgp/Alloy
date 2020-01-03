@@ -30,10 +30,10 @@ public struct Element: View {
     public var body: some View {
         bodyErased(props)
     }
-    let bodyErased: (Props?) -> AnyView
-    let props: Props?
+    let bodyErased: (Props) -> AnyView
+    let props: Props
     
-    init<E: ElementSource>(source: E, props: Props?) {
+    init<E: ElementSource>(source: E, props: Props) {
         bodyErased = {
             do {
                 return AnyView(try source.body(props: $0))
