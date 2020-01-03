@@ -26,8 +26,8 @@ public class Alloy {
     static let contextObjectKey: NSString = "Alloy"
     
     public init(script: String,
-                extensions: [ContextExtension] = Alloy.defaultExtensions,
-                sources: [ElementConvertible] = Alloy.defaultSources) {
+                extensions: [ContextExtension] = .defaultExtensions,
+                sources: [ElementConvertible] = .defaultSources) {
         self.sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
         context = JSContext()
         context.setObject(Exports(), forKeyedSubscript: Alloy.contextObjectKey)
@@ -41,14 +41,18 @@ public class Alloy {
 
 // MARK:- Default initializer arguments
 
-public extension Alloy {
+public extension Array where Element == ContextExtension {
     
     static var defaultExtensions: [ContextExtension] {
         [
-            ContextExtension.alloyExceptionHandler,
-            ContextExtension.alloyLogger
+            .alloyExceptionHandler,
+            .alloyLogger
         ]
     }
+    
+}
+
+public extension Array where Element == ElementConvertible {
     
     static var defaultSources: [ElementConvertible] {
         [
