@@ -4,7 +4,7 @@ import SwiftUI
 @objc protocol ElementExports: JSExport {
     
     var children: [ElementExports]? { get set }
-    var props: [String : Any]? { get set }
+    var props: [String: Any]? { get set }
     var type: String { get set }
     
 }
@@ -14,11 +14,11 @@ public struct Element: View {
     @objc private class Exports: NSObject, ElementExports {
         
         dynamic var children: [ElementExports]?
-        dynamic var props: [String : Any]?
+        dynamic var props: [String: Any]?
         dynamic var type: String
         
         required init(type: String,
-                      props: [String : Any]?,
+                      props: [String: Any]?,
                       children: [ElementExports]?) {
             self.type = type
             self.props = props

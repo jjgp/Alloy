@@ -1,11 +1,11 @@
 import JavaScriptCore
 import SwiftUI
 
-@objc protocol AlloyExports : JSExport {
+@objc protocol AlloyExports: JSExport {
     
     var createElement: CreateElement { get }
     
-    typealias CreateElement = @convention(block) (String, [String : Any]?, [ElementExports]?) -> ElementExports
+    typealias CreateElement = @convention(block) (String, [String: Any]?, [ElementExports]?) -> ElementExports
     
 }
 
