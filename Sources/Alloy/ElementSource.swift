@@ -65,6 +65,21 @@ public extension ElementSourceError {
     
 }
 
+public struct ButtonSource: ElementSource {
+    
+    public let type = "Button"
+    
+    public func body(props: Props) throws -> some View {
+        return Button(action: {
+            props.action()
+        }) {
+            // TODO: perhaps use `label` prop?
+            Text("Hello, world")
+        }
+    }
+    
+}
+
 public struct HStackSource: ElementSource {
     
     public let type = "HStack"

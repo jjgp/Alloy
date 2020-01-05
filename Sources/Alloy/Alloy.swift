@@ -59,6 +59,7 @@ public extension Array where Element == ElementConvertible {
     
     static var defaultSources: [ElementConvertible] {
         [
+            ButtonSource(),
             HStackSource(),
             TextSource(),
             VStackSource()

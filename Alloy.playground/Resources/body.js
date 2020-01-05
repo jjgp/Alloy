@@ -1,18 +1,22 @@
 function body() {
-  let element = Alloy.createElement('Text', { verbatim: 'Ann Arbor' })
+  let element = Alloy.createElement('Button', {
+    action: () => {
+      Alloy.log("Hello, world")
+    }
+  });
   Alloy.log(element);
   return Alloy.createElement(
     'VStack',
-    { 
-      alignment: 'leading', 
+    {
+      alignment: 'leading',
       spacing: 10.0,
       children: [
         element,
         Alloy.createElement('Text', { verbatim: 'Detroit' }),
         Alloy.createElement(
           'HStack',
-          { 
-            alignment: 'trailing', 
+          {
+            alignment: 'trailing',
             spacing: 5.0,
             children: [
               Alloy.createElement('Text', { verbatim: 'DIA' }),

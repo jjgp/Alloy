@@ -56,6 +56,7 @@ public extension Props {
 
 public extension Props {
     
+    @discardableResult
     func dynamicallyCall(withArguments: [Any]) -> Props {
         return Props(underlayingValue?.call(withArguments: withArguments))
     }
