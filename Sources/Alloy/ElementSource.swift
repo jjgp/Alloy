@@ -36,6 +36,9 @@ public struct ElementSourceError: Error {
         public static var props: String {
             "Props"
         }
+        static var undefinedSource: String {
+            "Undefined Source"
+        }
         
     }
     
@@ -47,19 +50,24 @@ public struct ElementSourceError: Error {
         self.reason = reason
     }
     
-    // TODO: conform to string convertibles here
+    // TODO: conform to string convertibles here?
     
 }
 
 public extension ElementSourceError {
     
-    static func childrenError(_ message: String = "") -> Error {
+    static func childrenError(_ message: String = "") -> Self {
         return ElementSourceError(reason: Reasons.children,
                                   message: message)
     }
     
-    static func propsError(_ message: String = "") -> Error {
+    static func propsError(_ message: String = "") -> Self {
         return ElementSourceError(reason: Reasons.props,
+                                  message: message)
+    }
+    
+    static func undefinedSourceError(_ message: String = "") -> Self {
+        return ElementSourceError(reason: Reasons.undefinedSource,
                                   message: message)
     }
     

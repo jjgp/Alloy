@@ -14,6 +14,7 @@ function body() {
         element,
         (() => Alloy.createElement('Text', { verbatim: 'Evaluated Function!!!' }))(),
         Alloy.createElement('Text', { verbatim: 'Detroit' }),
+        Alloy.createElement('Missing', { verbatim: 'Missing' }),
         Alloy.createElement(
           'HStack',
           {

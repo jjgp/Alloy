@@ -23,11 +23,25 @@ public struct Element: View {
             do {
                 return AnyView(try source.body(props: props))
             } catch {
-                // TODO: improve handling, possibly present error screen in Debug?
-                // Have meaningful logs with the default logger.
-                return AnyView(EmptyView())
+                return AnyView(Element.erroredView(error))
             }
         }
+    }
+    
+    init(error: Error) {
+        erasedBody = {
+            AnyView(Element.erroredView(error))
+        }
+    }
+    
+}
+
+extension Element {
+    
+    static func erroredView(_ error: Error) -> some View {
+        return Text(verbatim: "\(error)")
+            .background(Color.red)
+            .foregroundColor(.white)
     }
     
 }
