@@ -36,11 +36,25 @@ public extension Props {
         return number
     }
     
+    func toObject() -> Any? {
+        guard let object = underlayingValue?.toObject() else {
+            return nil
+        }
+        return object
+    }
+    
     func toString() -> String? {
         guard let stringValue = underlayingValue?.toString() else {
             return nil
         }
         return stringValue
+    }
+    
+    func toTypedObject<T>() -> T? {
+        guard let typedObject = toObject() as? T else {
+            return nil
+        }
+        return typedObject
     }
     
     private var underlayingValue: JSValue? {

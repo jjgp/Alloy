@@ -1,7 +1,7 @@
 function body() {
   let element = Alloy.createElement('Button', {
     action: () => {
-      Alloy.log("Hello, world")
+      Alloy.log("Hello, world");
     }
   });
   Alloy.log(element);
@@ -12,6 +12,7 @@ function body() {
       spacing: 10.0,
       children: [
         element,
+        Alloy.createElement('Function', () => Alloy.createElement('Text', { verbatim: 'Evaluated Function!!!' })),
         Alloy.createElement('Text', { verbatim: 'Detroit' }),
         Alloy.createElement(
           'HStack',
