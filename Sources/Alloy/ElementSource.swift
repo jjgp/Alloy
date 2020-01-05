@@ -65,20 +65,6 @@ public extension ElementSourceError {
     
 }
 
-public struct FunctionSource: ElementSource {
-    
-    public let type = "Function"
-    
-    public func body(props: Props) throws -> some View {
-        guard let exports: Element.Exports = props.dynamicallyCall(withArguments: []).toTypedObject() else {
-            // TODO: need specific fn error for this!
-            throw ElementSourceError.propsError()
-        }
-        return exports.element
-    }
-    
-}
-
 public struct ButtonSource: ElementSource {
     
     public let type = "Button"

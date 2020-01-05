@@ -12,7 +12,7 @@ function body() {
       spacing: 10.0,
       children: [
         element,
-        Alloy.createElement('Function', () => Alloy.createElement('Text', { verbatim: 'Evaluated Function!!!' })),
+        (() => Alloy.createElement('Text', { verbatim: 'Evaluated Function!!!' }))(),
         Alloy.createElement('Text', { verbatim: 'Detroit' }),
         Alloy.createElement(
           'HStack',

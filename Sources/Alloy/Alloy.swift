@@ -9,7 +9,7 @@ import SwiftUI
     
 }
 
-public class Alloy {
+public struct Alloy: View {
     
     @objc private class Exports: NSObject, AlloyExports {
         
@@ -60,7 +60,6 @@ public extension Array where Element == ElementConvertible {
     static var defaultSources: [ElementConvertible] {
         [
             ButtonSource(),
-            FunctionSource(),
             HStackSource(),
             TextSource(),
             VStackSource()
