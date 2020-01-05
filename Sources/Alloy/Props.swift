@@ -5,11 +5,13 @@ import JavaScriptCore
 public enum Props {
     
     case none
-    case value(JSValue)
+    case managedValue(JSManagedValue)
     
     init(_ value: Any?) {
-        if value is JSValue {
-            self = .value(value as! JSValue)
+        if value is JSManagedValue {
+            self = .managedValue(value as! JSManagedValue)
+        } else if value is JSValue {
+            self = .managedValue(JSManagedValue(value: value as? JSValue))
         } else {
             self = .none
         }
@@ -19,36 +21,53 @@ public enum Props {
 
 public extension Props {
     
-    var underlyingValue: JSValue? {
-        if case let .value(value) = self {
-            return value
-        } else {
+    func toChildren() -> Children? {
+        guard let exports = underlayingValue?.toObject() as? [Element.Exports] else {
             return nil
         }
+        let elements = exports.map({ $0.element })
+        return Children(elements)
+    }
+    
+    func toNumber() -> NSNumber? {
+        guard let number = underlayingValue?.toNumber() else {
+            return nil
+        }
+        return number
+    }
+    
+    func toString() -> String? {
+        guard let stringValue = underlayingValue?.toString() else {
+            return nil
+        }
+        return stringValue
+    }
+    
+    private var underlayingValue: JSValue? {
+        guard case let .managedValue(managedValue) = self else {
+            return nil
+        }
+        return managedValue.value
     }
     
 }
 
-public extension Props {
-    
-    subscript(dynamicMember member: String) -> Props {
-        guard case let .value(value) = self else {
-            return .none
-        }
-        
-        return Props(value.forProperty(member))
-    }
-    
-}
+// MARK:- @dynamicCallable
 
 public extension Props {
     
     func dynamicallyCall(withArguments: [Any]) -> Props {
-        guard case let .value(value) = self else {
-            return .none
-        }
-        
-        return Props(value.call(withArguments: withArguments))
+        return Props(underlayingValue?.call(withArguments: withArguments))
+    }
+    
+}
+
+// MARK:- @dynamicMemberLookup
+
+public extension Props {
+    
+    subscript(dynamicMember member: String) -> Props {
+        return Props(underlayingValue?.forProperty(member))
     }
     
 }

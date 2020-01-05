@@ -70,14 +70,14 @@ public struct HStackSource: ElementSource {
     public let type = "HStack"
     
     public func body(props: Props) throws -> some View {
-        guard let children = props.children.underlyingValue?.toObject() as? Children else {
+        guard let children = props.children.toChildren() else {
             throw ElementSourceError.childrenError()
         }
         
-        let alignment = props.alignment.underlyingValue?.toString()
+        let alignment = props.alignment.toString()
             .flatMap { VerticalAlignment.represented(by: $0) }
             ?? .center
-        let spacing = CGFloat(truncating: props.spacing.underlyingValue?.toNumber() ?? 0)
+        let spacing = CGFloat(truncating: props.spacing.toNumber() ?? 0)
         
         return HStack(alignment: alignment, spacing: spacing) {
             children
@@ -91,7 +91,7 @@ public struct TextSource: ElementSource {
     public let type = "Text"
     
     public func body(props: Props) throws -> some View {
-        let verbatim = props.verbatim.underlyingValue?.toString() ?? ""
+        let verbatim = props.verbatim.toString() ?? ""
         return Text(verbatim: verbatim)
     }
     
@@ -102,14 +102,14 @@ public struct VStackSource: ElementSource {
     public let type = "VStack"
     
     public func body(props: Props) throws -> some View {
-        guard let children = props.children.underlyingValue?.toObject() as? Children else {
+        guard let children = props.children.toChildren() else {
             throw ElementSourceError.childrenError()
         }
         
-        let alignment = props.alignment.underlyingValue?.toString()
+        let alignment = props.alignment.toString()
             .flatMap { HorizontalAlignment.represented(by: $0) }
             ?? .center
-        let spacing = CGFloat(truncating: props.spacing.underlyingValue?.toNumber() ?? 0)
+        let spacing = CGFloat(truncating: props.spacing.toNumber() ?? 0)
         
         return VStack(alignment: alignment, spacing: spacing) {
             children

@@ -5,7 +5,7 @@ import SwiftUI
     
     var createElement: CreateElement { get }
     
-    typealias CreateElement = @convention(block) (String, [String: Any]?, [ElementExports]?) -> ElementExports
+    typealias CreateElement = @convention(block) (String, JSValue?) -> Element.Exports
     
 }
 
@@ -13,24 +13,27 @@ public class Alloy {
     
     @objc private class Exports: NSObject, AlloyExports {
         
-        let createElement: CreateElement = { type, props, children in
-            return Element.createExports(type: type,
-                                         props: props,
-                                         children: children)
+        let createElement: CreateElement
+        
+        init(sources: [ElementConvertible]) {
+            let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
+            createElement = { type, props in
+                // TODO: force unwrap
+                let source: ElementConvertible! = sources[type]
+                return source.toElement(passing: Props(props)).exported()
+            }
         }
         
     }
     
-    let sources: [String: ElementConvertible]
     let context: JSContext
     static let contextObjectKey: NSString = "Alloy"
     
     public init(script: String,
                 extensions: [ContextExtension] = .defaultExtensions,
                 sources: [ElementConvertible] = .defaultSources) {
-        self.sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
         context = JSContext()
-        context.setObject(Exports(), forKeyedSubscript: Alloy.contextObjectKey)
+        context.setObject(Exports(sources: sources), forKeyedSubscript: Alloy.contextObjectKey)
         extensions.forEach {
             $0.extension(context)
         }
@@ -69,20 +72,10 @@ public extension Array where Element == ElementConvertible {
 public extension Alloy {
     
     var body: some View {
-        let body = context.objectForKeyedSubscript("body")
-        let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
-        return sourceElement(exports: exports)
-    }
-    
-    private func sourceElement(exports: ElementExports) -> Element {
-        let source: ElementConvertible! = sources[exports.type]
-        var props = exports.props
-        if props != nil, let children = exports.children?.compactMap({
-            sourceElement(exports: $0)
-        }) {
-            props?["children"] = Children(children)
-        }
-        return source.toElement(passing: Props(props))
+        let bodyScript = context.objectForKeyedSubscript("body")
+        // TODO: handle this force unwrap
+        let exports = bodyScript?.call(withArguments: nil)?.toObject() as! Element.Exports
+        return exports.element
     }
     
 }

@@ -1,61 +1,41 @@
 import JavaScriptCore
 import SwiftUI
 
-@objc protocol ElementExports: JSExport {
-    
-    var children: [ElementExports]? { get set }
-    var props: [String: Any]? { get set }
-    var type: String { get set }
-    
-}
-
 public struct Element: View {
     
-    @objc private class Exports: NSObject, ElementExports {
+    @objc class Exports: NSObject {
         
-        dynamic var children: [ElementExports]?
-        dynamic var props: [String: Any]?
-        dynamic var type: String
+        let element: Element
         
-        required init(type: String,
-                      props: [String: Any]?,
-                      children: [ElementExports]?) {
-            self.type = type
-            self.props = props
-            self.children = children
+        fileprivate init(element: Element) {
+            self.element = element
         }
         
     }
     
     public var body: some View {
-        bodyErased(props)
+        erasedBody()
     }
-    let bodyErased: (Props) -> AnyView
-    let props: Props
+    let erasedBody: () -> AnyView
     
     init<E: ElementSource>(source: E, props: Props) {
-        bodyErased = {
+        erasedBody = {
             do {
-                return AnyView(try source.body(props: $0))
+                return AnyView(try source.body(props: props))
             } catch {
                 // TODO: improve handling, possibly present error screen in Debug?
                 // Have meaningful logs with the default logger.
                 return AnyView(EmptyView())
             }
         }
-        self.props = props
     }
     
 }
 
 extension Element {
     
-    static func createExports(type: String,
-                              props: [String: Any]?,
-                              children: [ElementExports]?) -> ElementExports {
-        return Exports(type: type,
-                       props: props,
-                       children: children)
+    func exported() -> Exports {
+        return Exports(element: self)
     }
     
 }
