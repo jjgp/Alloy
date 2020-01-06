@@ -26,53 +26,6 @@ public extension ElementSource {
     
 }
 
-public struct ElementSourceError: Error {
-    
-    public struct Reasons {
-        
-        public static var children: String {
-            "Children"
-        }
-        public static var props: String {
-            "Props"
-        }
-        static var undefinedSource: String {
-            "Undefined Source"
-        }
-        
-    }
-    
-    let message: String
-    let reason: String
-    
-    public init(reason: String, message: String) {
-        self.message = message
-        self.reason = reason
-    }
-    
-    // TODO: conform to string convertibles here?
-    
-}
-
-public extension ElementSourceError {
-    
-    static func childrenError(_ message: String = "") -> Self {
-        return ElementSourceError(reason: Reasons.children,
-                                  message: message)
-    }
-    
-    static func propsError(_ message: String = "") -> Self {
-        return ElementSourceError(reason: Reasons.props,
-                                  message: message)
-    }
-    
-    static func undefinedSourceError(_ message: String = "") -> Self {
-        return ElementSourceError(reason: Reasons.undefinedSource,
-                                  message: message)
-    }
-    
-}
-
 public struct ButtonSource: ElementSource {
     
     public let type = "Button"
@@ -94,7 +47,7 @@ public struct HStackSource: ElementSource {
     
     public func body(props: Props) throws -> some View {
         guard let children = props.children.toChildren() else {
-            throw ElementSourceError.childrenError()
+            throw AlloyError.children("\(type) expects children")
         }
         
         let alignment = props.alignment.toString()
@@ -126,7 +79,7 @@ public struct VStackSource: ElementSource {
     
     public func body(props: Props) throws -> some View {
         guard let children = props.children.toChildren() else {
-            throw ElementSourceError.childrenError()
+            throw AlloyError.children("\(type) expects children")
         }
         
         let alignment = props.alignment.toString()

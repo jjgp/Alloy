@@ -19,8 +19,7 @@ public struct Alloy: View {
             let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
             createElement = { type, props in
                 return sources[type]?.toElement(passing: Props(props)).exported()
-                    /* TODO: make ElementSourceError more generic like AlloyError struct? */
-                    ?? Element(error: ElementSourceError.undefinedSourceError()).exported()
+                    ?? Element(error: AlloyError.source("Undefined source type (\(type)) in Alloy.createElement")).exported()
             }
         }
         
@@ -74,11 +73,15 @@ public extension Alloy {
     
     var body: some View {
         let bodyScript = context.objectForKeyedSubscript("body")
-        let exports = bodyScript?.call(withArguments: nil)?.toObject() as? Element.Exports
-        // TODO: Should be a fatal error? or have user pass backup view?
-        return exports?.element
-            /* TODO: This is the wrong type of error for now */
-            ?? Element(error: ElementSourceError.undefinedSourceError())
+        guard let exports = bodyScript?.call(withArguments: nil)?.toObject() as? Element.Exports else {
+            let errorMessage = "body function did not create Element.Exports"
+            #if DEBUG
+            return Element(error: AlloyError.exports(errorMessage))
+            #else
+            fatalError(errorMessage)
+            #endif
+        }
+        return exports.element
     }
     
 }
