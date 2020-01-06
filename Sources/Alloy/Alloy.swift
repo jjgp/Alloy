@@ -1,36 +1,46 @@
 import JavaScriptCore
 import SwiftUI
 
-@objc protocol AlloyExports : JSExport {
+@objc protocol AlloyExports: JSExport {
     
     var createElement: CreateElement { get }
     
-    typealias CreateElement = @convention(block) (String, [String : Any]?, [ElementExports]?) -> ElementExports
+    typealias CreateElement = @convention(block) (String, JSValue?) -> Element.Exports
     
 }
 
-public class Alloy {
+public struct Alloy: View {
     
     @objc private class Exports: NSObject, AlloyExports {
         
-        let createElement: CreateElement = { type, props, children in
-            return Element.createExports(type: type,
-                                         props: props,
-                                         children: children)
+        let createElement: CreateElement
+        
+        init(sources: [ElementConvertible]) {
+            let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
+            createElement = { type, props in
+                guard let source = sources[type] else {
+                    let errorMessage = "Undefined source type (\(type)) in Alloy.createElement"
+                    #if DEBUG
+                    return Element(error: AlloyError.source(errorMessage)).exported()
+                    #else
+                    fatalError(errorMessage)
+                    #endif
+                }
+                
+                return source.toElement(passing: Props(props)).exported()
+            }
         }
         
     }
     
-    let sources: [String: ElementConvertible]
     let context: JSContext
     static let contextObjectKey: NSString = "Alloy"
     
     public init(script: String,
-                extensions: [ContextExtension] = Alloy.defaultExtensions,
-                sources: [ElementConvertible] = Alloy.defaultSources) {
-        self.sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
+                extensions: [ContextExtension] = .defaultExtensions,
+                sources: [ElementConvertible] = .defaultSources) {
         context = JSContext()
-        context.setObject(Exports(), forKeyedSubscript: Alloy.contextObjectKey)
+        context.setObject(Exports(sources: sources), forKeyedSubscript: Alloy.contextObjectKey)
         extensions.forEach {
             $0.extension(context)
         }
@@ -41,17 +51,22 @@ public class Alloy {
 
 // MARK:- Default initializer arguments
 
-public extension Alloy {
+public extension Array where Element == ContextExtension {
     
     static var defaultExtensions: [ContextExtension] {
         [
-            ContextExtension.alloyExceptionHandler,
-            ContextExtension.alloyLogger
+            .alloyExceptionHandler,
+            .alloyLogger
         ]
     }
     
+}
+
+public extension Array where Element == ElementConvertible {
+    
     static var defaultSources: [ElementConvertible] {
         [
+            ButtonSource(),
             HStackSource(),
             TextSource(),
             VStackSource()
@@ -65,20 +80,16 @@ public extension Alloy {
 public extension Alloy {
     
     var body: some View {
-        let body = context.objectForKeyedSubscript("body")
-        let exports = body?.call(withArguments: nil)?.toObject() as! ElementExports
-        return sourceElement(exports: exports)
-    }
-    
-    private func sourceElement(exports: ElementExports) -> Element {
-        let source: ElementConvertible! = sources[exports.type]
-        var props = exports.props
-        if props != nil, let children = exports.children?.compactMap({
-            sourceElement(exports: $0)
-        }) {
-            props?["children"] = Children(children)
+        let bodyScript = context.objectForKeyedSubscript("body")
+        guard let exports = bodyScript?.call(withArguments: nil)?.toObject() as? Element.Exports else {
+            let errorMessage = "body function did not create Element.Exports"
+            #if DEBUG
+            return Element(error: AlloyError.exports(errorMessage))
+            #else
+            fatalError(errorMessage)
+            #endif
         }
-        return source.toElement(passing: Props(props))
+        return exports.element
     }
     
 }

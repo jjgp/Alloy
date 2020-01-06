@@ -26,6 +26,7 @@ public extension ContextExtension {
             let logger: @convention(block) (String) -> Void = {
                 ContextExtension.defaultLogger($0)
             }
+            // TODO: this seems pretty indirect way to set on Alloy object...
             $0.objectForKeyedSubscript(Alloy.contextObjectKey)?.setValue(logger, forProperty: "log")
         }
     }

@@ -1,19 +1,10 @@
 import XCTest
+import SwiftUI
 @testable import Alloy
 
 let alloyScript = #"""
 function body() {
-  Alloy.log('foobar');
-  return Alloy.createElement(
-    'VStack',
-    { alignment: 'center', spacing: 25.3 },
-    [
-      Alloy.createElement('Text', { verbatim: 'Foobar' }, null),
-      Alloy.createElement('Text', { verbatim: 'Barbaz' }, null),
-      Alloy.createElement('Text', { verbatim: 'Quzquix' }, null),
-      Alloy.createElement('Text', { verbatim: 'Barfoo' }, null),
-    ]
-  );
+  return Alloy.createElement('Function', () => Alloy.createElement('Text', { verbatim: 'Function' }));
 }
 """#
 
@@ -21,6 +12,8 @@ final class AlloyTests: XCTestCase {
     
     func testBodyIsNotNil() {
         let element = Alloy(script: alloyScript).body as! Element
+        let hc = UIHostingController(rootView: element)
+        _ = hc.view
         XCTAssertNotNil(element.body)
     }
 
@@ -29,3 +22,4 @@ final class AlloyTests: XCTestCase {
     ]
     
 }
+
