@@ -23,7 +23,11 @@ public struct Element: View {
             do {
                 return AnyView(try source.body(props: props))
             } catch {
+                #if DEBUG
                 return AnyView(Element.erroredView(error))
+                #else
+                fatalError("source with type \(source.type) threw \(error)")
+                #endif
             }
         }
     }

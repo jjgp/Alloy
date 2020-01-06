@@ -18,8 +18,16 @@ public struct Alloy: View {
         init(sources: [ElementConvertible]) {
             let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
             createElement = { type, props in
-                return sources[type]?.toElement(passing: Props(props)).exported()
-                    ?? Element(error: AlloyError.source("Undefined source type (\(type)) in Alloy.createElement")).exported()
+                guard let source = sources[type] else {
+                    let errorMessage = "Undefined source type (\(type)) in Alloy.createElement"
+                    #if DEBUG
+                    return Element(error: AlloyError.source(errorMessage)).exported()
+                    #else
+                    fatalError(errorMessage)
+                    #endif
+                }
+                
+                return source.toElement(passing: Props(props)).exported()
             }
         }
         
