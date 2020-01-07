@@ -23,26 +23,30 @@ public struct Element: View {
             do {
                 return AnyView(try source.body(props: props))
             } catch {
-                #if DEBUG
-                return AnyView(Element.erroredView(error))
-                #else
-                fatalError("source with type \(source.type) threw \(error)")
-                #endif
+                return AnyView(Element(error: error))
             }
         }
     }
     
     init(error: Error) {
         erasedBody = {
-            AnyView(Element.erroredView(error))
+            #if DEBUG
+            return AnyView(Element.erroredView(error))
+            #else
+            return AnyView(EmptyView())
+            #endif
         }
+    }
+    
+    init(error: AlloyError) {
+        self.init(error: error as Error)
     }
     
 }
 
 extension Element {
     
-    static func erroredView(_ error: Error) -> some View {
+    private static func erroredView(_ error: Error) -> some View {
         return Text(verbatim: "\(error)")
             .background(Color.red)
             .foregroundColor(.white)

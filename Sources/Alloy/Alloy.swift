@@ -19,12 +19,7 @@ public struct Alloy: View {
             let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
             createElement = { type, props in
                 guard let source = sources[type] else {
-                    let errorMessage = "Undefined source type (\(type)) in Alloy.createElement"
-                    #if DEBUG
-                    return Element(error: AlloyError.source(errorMessage)).exported()
-                    #else
-                    fatalError(errorMessage)
-                    #endif
+                    return Element(error: .source("Undefined source type (\(type)) in Alloy.createElement")).exported()
                 }
                 
                 return source.toElement(passing: Props(props)).exported()
@@ -82,12 +77,7 @@ public extension Alloy {
     var body: some View {
         let bodyScript = context.objectForKeyedSubscript("body")
         guard let exports = bodyScript?.call(withArguments: nil)?.toObject() as? Element.Exports else {
-            let errorMessage = "body function did not create Element.Exports"
-            #if DEBUG
-            return Element(error: AlloyError.exports(errorMessage))
-            #else
-            fatalError(errorMessage)
-            #endif
+            return Element(error: .exports("body function did not create Element.Exports"))
         }
         return exports.element
     }

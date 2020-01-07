@@ -2,18 +2,10 @@ public struct AlloyError: Error {
     
     public struct Reasons {
         
-        public static var children: String {
-            "Children"
-        }
-        public static var exports: String {
-            "Exports"
-        }
-        public static var props: String {
-            "Props"
-        }
-        static var source: String {
-            "Source"
-        }
+        public static let children = "Children"
+        public static let exports = "Exports"
+        public static let props = "Props"
+        public static let source = "Source"
         
     }
     
