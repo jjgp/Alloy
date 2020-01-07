@@ -11,19 +11,12 @@ import SwiftUI
 
 public struct Alloy: View {
     
-    @objc private class Exports: NSObject, AlloyExports {
+    @objc fileprivate class Exports: NSObject, AlloyExports {
         
         let createElement: CreateElement
         
         init(sources: [ElementConvertible]) {
-            let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
-            createElement = { type, props in
-                guard let source = sources[type] else {
-                    return Element(error: .source("Undefined source type (\(type)) in Alloy.createElement")).exported()
-                }
-                
-                return source.toElement(passing: Props(props)).exported()
-            }
+            createElement = Self.createElement(sources: sources)
         }
         
     }
@@ -40,6 +33,23 @@ public struct Alloy: View {
             $0.extension(context)
         }
         context.evaluateScript(script)
+    }
+    
+}
+
+// MARK:- 
+
+private extension Alloy.Exports {
+    
+    static func createElement(sources: [ElementConvertible]) -> CreateElement {
+        let sources = Dictionary(uniqueKeysWithValues: sources.map { ($0.type, $0) })
+        return { type, props in
+            guard let source = sources[type] else {
+                return Element(error: .source("Undefined source type (\(type)) in Alloy.createElement")).exported()
+            }
+            
+            return source.toElement(passing: Props(props)).exported()
+        }
     }
     
 }
