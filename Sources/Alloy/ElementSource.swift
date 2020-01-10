@@ -41,6 +41,24 @@ public struct ButtonSource: ElementSource {
     
 }
 
+public struct ForEachSource: ElementSource {
+    
+    public let type = "ForEach"
+    
+    public func body(props: Props) throws -> some View {
+        guard let data: [NSObject] = props.data.toTypedObject() else {
+            throw AlloyError.children("\(type) expects children")
+        }
+        
+        return ForEach(0..<data.count) { index -> Element in
+            // TODO: handle gracefully
+            let exports: Element.Exports! = props.renderItem(data[index]).toTypedObject()
+            return exports.element
+        }
+    }
+    
+}
+
 public struct HStackSource: ElementSource {
     
     public let type = "HStack"
@@ -56,6 +74,38 @@ public struct HStackSource: ElementSource {
         let spacing = CGFloat(truncating: props.spacing.toNumber() ?? 0)
         
         return HStack(alignment: alignment, spacing: spacing) {
+            children
+        }
+    }
+    
+}
+
+public struct ListSource: ElementSource {
+    
+    public let type = "List"
+    
+    public func body(props: Props) throws -> some View {
+        guard let children = props.children.toChildren() else {
+            throw AlloyError.children("\(type) expects children")
+        }
+        
+        return List {
+            children
+        }
+    }
+    
+}
+
+public struct NavigationViewSource: ElementSource {
+    
+    public let type = "NavigationView"
+    
+    public func body(props: Props) throws -> some View {
+        guard let children = props.children.toChildren() else {
+            throw AlloyError.children("\(type) expects children")
+        }
+        
+        return NavigationView {
             children
         }
     }
